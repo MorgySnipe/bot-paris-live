@@ -15,6 +15,7 @@ ligues_sans_stats = set()
 bot = Bot(token=TELEGRAM_TOKEN)
 dernier_heartbeat = datetime.now()
 
+
 async def envoyer_message(msg):
     try:
         await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
@@ -22,8 +23,9 @@ async def envoyer_message(msg):
     except Exception as e:
         print(f"❌ Erreur envoi message Telegram: {e}")
 
+
 async def get_matchs_live():
-    print("📡 Appel API : récupération des matchs live...")  # ✅ DEBUG AJOUTÉ
+    print("📡 Appel API : récupération des matchs live...")
     url = "https://v3.football.api-sports.io/fixtures?live=all"
     headers = {"x-apisports-key": API_KEY}
     async with aiohttp.ClientSession() as session:
@@ -34,6 +36,7 @@ async def get_matchs_live():
         except Exception as e:
             print(f"❌ Erreur récupération API: {e}")
             return []
+
 
 def bonnes_conditions(stats):
     shots_on_target = stats.get("Shots on Goal", 0)
@@ -49,6 +52,7 @@ def bonnes_conditions(stats):
         corners >= 1 and
         attacks >= 30
     )
+
 
 async def analyser_match(match):
     fixture = match["fixture"]
@@ -98,6 +102,7 @@ async def analyser_match(match):
             f"Tirs cadrés : {stats.get('Shots on Goal', 'N/A')}, Corners : {stats.get('Corner Kicks', 'N/A')}"
         )
 
+
 async def get_stats(fixture_id, league):
     url = f"https://v3.football.api-sports.io/fixtures/statistics?fixture={fixture_id}"
     headers = {"x-apisports-key": API_KEY}
@@ -120,6 +125,7 @@ async def get_stats(fixture_id, league):
             print(f"❌ Erreur stats: {e}")
             return {}
 
+
 async def verifier_resultats(matchs):
     for match in matchs:
         fid = match["fixture"]["id"]
@@ -140,9 +146,10 @@ async def verifier_resultats(matchs):
             await envoyer_message(f"📊 Résultat +0.5 but *Mi-temps* : {resultat}")
             del matchs_surveilles[fid]
 
+
 async def main():
     global dernier_heartbeat
-    print("🟢 Lancement de la boucle principale...")  # ✅ DEBUG AJOUTÉ
+    print("🟢 Lancement de la boucle principale...")
     await envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage auto des ligues sans stats...")
 
     while True:
@@ -159,6 +166,11 @@ async def main():
             dernier_heartbeat = datetime.now()
 
         await asyncio.sleep(CHECK_INTERVAL)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
 
 if __name__ == "__main__":
     asyncio.run(main())

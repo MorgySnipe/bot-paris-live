@@ -23,6 +23,7 @@ async def envoyer_message(msg):
         print(f"❌ Erreur envoi message Telegram: {e}")
 
 async def get_matchs_live():
+    print("📡 Appel API : récupération des matchs live...")  # ✅ DEBUG AJOUTÉ
     url = "https://v3.football.api-sports.io/fixtures?live=all"
     headers = {"x-apisports-key": API_KEY}
     async with aiohttp.ClientSession() as session:
@@ -141,6 +142,7 @@ async def verifier_resultats(matchs):
 
 async def main():
     global dernier_heartbeat
+    print("🟢 Lancement de la boucle principale...")  # ✅ DEBUG AJOUTÉ
     await envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage auto des ligues sans stats...")
 
     while True:

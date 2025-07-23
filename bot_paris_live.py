@@ -19,7 +19,8 @@ dernier_heartbeat = datetime.now()
 # ✅ Liste blanche des ligues fiables
 ligues_autorisees = {
     "UEFA Champions League",
-    "Euro (F)"
+    "UEFA Championship - Women",
+    "UEFA Europa Conference League"
 }
 
 def envoyer_message(msg):
@@ -160,5 +161,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 

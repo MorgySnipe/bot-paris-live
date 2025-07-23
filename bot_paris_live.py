@@ -51,7 +51,7 @@ def bonnes_conditions(stats):
     print(f"Stats reçues: SoG={shots_on_target}, DA={dangerous_attacks}, CK={corners}, ATT={attacks}")
     return (
         shots_on_target >= 1 and
-        dangerous_attacks >= 15 and
+        dangerous_attacks >= 7 and
         corners >= 1 and
         attacks >= 30
     )

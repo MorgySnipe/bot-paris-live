@@ -141,6 +141,23 @@ async def verifier_resultats(matchs):
 
 async def main():
     global dernier_heartbeat
+    print("🟢 Lancement test des ligues avec stats...")
+
+    matchs = await get_matchs_live()
+    print(f"📊 Vérification des stats disponibles ({len(matchs)} matchs live)...")
+
+    for match in matchs:
+        league = match["league"]["name"]
+        fixture_id = match["fixture"]["id"]
+        stats = await get_stats(fixture_id, league)
+        if stats:
+            print(f"✅ Stats dispo pour : {league} | Match ID: {fixture_id}")
+        else:
+            print(f"❌ PAS DE stats pour : {league}")
+    
+    return  # ⛔ TEMPORAIRE : empêche la boucle de tourner
+
+    # --- BOUCLE NORMALE ---
     print("🟢 Lancement de la boucle principale...")
     envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage auto des ligues sans stats...")
 
@@ -161,4 +178,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 

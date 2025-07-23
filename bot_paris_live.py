@@ -2,6 +2,8 @@ import asyncio
 import aiohttp
 from datetime import datetime
 from telegram import Bot
+import functools
+print = functools.partial(print, flush=True)
 
 # --- CONFIGURATION ---
 API_KEY = "eeeb45c4722cf452501e32088ed5d8a6"
@@ -162,3 +164,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+

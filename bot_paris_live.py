@@ -85,6 +85,11 @@ async def analyser_match(match):
     teams = match["teams"]
     match_id = fixture["id"]
     minute = fixture["status"]["elapsed"]
+
+    if minute is None:
+        print(f"⚠️ Minute non définie pour le match {match_id}, on skip...")
+        return
+
     score = match["goals"]
     home = teams["home"]["name"]
     away = teams["away"]["name"]

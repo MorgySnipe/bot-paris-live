@@ -59,8 +59,9 @@ def bonnes_conditions(stats):
 async def get_stats(fixture_id):
     url = f"https://v3.football.api-sports.io/fixtures/statistics?fixture={fixture_id}"
     headers = {"x-apisports-key": API_KEY}
-    async with aiohttp.ClientSession() as session:
-        try:
+
+    async def fetch():
+        async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as resp:
                 data = await resp.json()
                 stats = {}
@@ -70,9 +71,14 @@ async def get_stats(fixture_id):
                         value = stat["value"] or 0
                         stats[name] = stats.get(name, 0) + (int(value) if isinstance(value, int) else 0)
                 return stats
-        except Exception as e:
-            print(f"❌ Erreur stats: {e}")
-            return {}
+
+    stats = await fetch()
+    if not stats:
+        print("⏳ Aucune stats trouvée, nouvelle tentative dans 10s...")
+        await asyncio.sleep(10)
+        stats = await fetch()
+
+    return stats
 
 async def analyser_match(match):
     fixture = match["fixture"]
@@ -161,6 +167,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
 

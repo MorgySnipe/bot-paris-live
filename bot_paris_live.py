@@ -23,7 +23,7 @@ async def envoyer_message(msg):
         print(f"❌ Erreur envoi message Telegram: {e}")
 
 async def get_matchs_live():
-    print("📡 Appel API : récupération des matchs live...")  # ✅ DEBUG AJOUTÉ
+    print("📡 Appel API : récupération des matchs live...")
     url = "https://v3.football.api-sports.io/fixtures?live=all"
     headers = {"x-apisports-key": API_KEY}
     async with aiohttp.ClientSession() as session:
@@ -78,7 +78,7 @@ async def analyser_match(match):
 
     if 30 <= minute <= 60 and total_goals == 0 and bonnes_conditions(stats):
         alertes_envoyees.add(key)
-        matchs_surveilles[match_id] = {"mi_temps": False, "pleine": True, "but": False}
+        matchs_surveilles[match_id] = {"mi_temps": False, "pleine": True}
         await envoyer_message(
             f"✨ *PRONOSTIC LIVE : +0.5 BUT (Fin de match)*\n"
             f"📍 {league} | {home} vs {away}\n"
@@ -89,7 +89,7 @@ async def analyser_match(match):
 
     elif 20 <= minute <= 30 and total_goals == 0 and bonnes_conditions(stats):
         alertes_envoyees.add(key)
-        matchs_surveilles[match_id] = {"mi_temps": True, "pleine": False, "but": False}
+        matchs_surveilles[match_id] = {"mi_temps": True, "pleine": False}
         await envoyer_message(
             f"🔮 *PRONOSTIC LIVE : +0.5 BUT À LA MI-TEMPS*\n"
             f"📍 {league} | {home} vs {away}\n"
@@ -130,19 +130,19 @@ async def verifier_resultats(matchs):
         total_goals = match["goals"]["home"] + match["goals"]["away"]
         infos = matchs_surveilles[fid]
 
-        if infos["pleine"] and status == "FT":
+        if infos.get("pleine") and status == "FT":
             resultat = "✅ *GAGNÉ*" if total_goals > 0 else "❌ *PERDU*"
             await envoyer_message(f"📊 Résultat +0.5 but *Fin de match* : {resultat}")
             del matchs_surveilles[fid]
 
-        elif infos["mi_temps"] and status == "HT":
+        elif infos.get("mi_temps") and status == "HT":
             resultat = "✅ *GAGNÉ*" if total_goals > 0 else "❌ *PERDU*"
             await envoyer_message(f"📊 Résultat +0.5 but *Mi-temps* : {resultat}")
             del matchs_surveilles[fid]
 
 async def main():
     global dernier_heartbeat
-    print("🟢 Lancement de la boucle principale...")  # ✅ DEBUG AJOUTÉ
+    print("🟢 Lancement de la boucle principale...")
     await envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage auto des ligues sans stats...")
 
     while True:
@@ -161,11 +161,4 @@ async def main():
         await asyncio.sleep(CHECK_INTERVAL)
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     asyncio.run(main())
-=======
-    asyncio.run(main())
-
-
-
->>>>>>> a49d01d5ffd866b0b635f7aedb9f4bd1aebb9f8b

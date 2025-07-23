@@ -17,9 +17,9 @@ ligues_sans_stats = set()
 bot = Bot(token=TELEGRAM_TOKEN)
 dernier_heartbeat = datetime.now()
 
-async def envoyer_message(msg):
+def envoyer_message(msg):
     try:
-        await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
+        bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
         print("✅ Message envoyé.")
     except Exception as e:
         print(f"❌ Erreur envoi message Telegram: {e}")
@@ -70,10 +70,7 @@ async def analyser_match(match):
     stats = await get_stats(match_id, league)
     print(f"⏱️ {minute}′ {home} vs {away} ({league})")
 
-    if not stats:
-        return
-
-    if key in alertes_envoyees:
+    if not stats or key in alertes_envoyees:
         return
 
     total_goals = score["home"] + score["away"]
@@ -81,7 +78,7 @@ async def analyser_match(match):
     if 30 <= minute <= 60 and total_goals == 0 and bonnes_conditions(stats):
         alertes_envoyees.add(key)
         matchs_surveilles[match_id] = {"mi_temps": False, "pleine": True}
-        await envoyer_message(
+        envoyer_message(
             f"✨ *PRONOSTIC LIVE : +0.5 BUT (Fin de match)*\n"
             f"📍 {league} | {home} vs {away}\n"
             f"⏱️ {minute}′ | Score : {score['home']} - {score['away']}\n"
@@ -92,7 +89,7 @@ async def analyser_match(match):
     elif 20 <= minute <= 30 and total_goals == 0 and bonnes_conditions(stats):
         alertes_envoyees.add(key)
         matchs_surveilles[match_id] = {"mi_temps": True, "pleine": False}
-        await envoyer_message(
+        envoyer_message(
             f"🔮 *PRONOSTIC LIVE : +0.5 BUT À LA MI-TEMPS*\n"
             f"📍 {league} | {home} vs {away}\n"
             f"⏱️ {minute}′ | Score : {score['home']} - {score['away']}\n"
@@ -134,18 +131,18 @@ async def verifier_resultats(matchs):
 
         if infos.get("pleine") and status == "FT":
             resultat = "✅ *GAGNÉ*" if total_goals > 0 else "❌ *PERDU*"
-            await envoyer_message(f"📊 Résultat +0.5 but *Fin de match* : {resultat}")
+            envoyer_message(f"📊 Résultat +0.5 but *Fin de match* : {resultat}")
             del matchs_surveilles[fid]
 
         elif infos.get("mi_temps") and status == "HT":
             resultat = "✅ *GAGNÉ*" if total_goals > 0 else "❌ *PERDU*"
-            await envoyer_message(f"📊 Résultat +0.5 but *Mi-temps* : {resultat}")
+            envoyer_message(f"📊 Résultat +0.5 but *Mi-temps* : {resultat}")
             del matchs_surveilles[fid]
 
 async def main():
     global dernier_heartbeat
     print("🟢 Lancement de la boucle principale...")
-    await envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage auto des ligues sans stats...")
+    envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage auto des ligues sans stats...")
 
     while True:
         matchs = await get_matchs_live()
@@ -157,7 +154,7 @@ async def main():
         await verifier_resultats(matchs)
 
         if (datetime.now() - dernier_heartbeat).total_seconds() >= 21600:
-            await envoyer_message("✅ Bot toujours actif !")
+            envoyer_message("✅ Bot toujours actif !")
             dernier_heartbeat = datetime.now()
 
         await asyncio.sleep(CHECK_INTERVAL)

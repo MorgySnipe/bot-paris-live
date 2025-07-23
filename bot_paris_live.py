@@ -18,7 +18,8 @@ dernier_heartbeat = datetime.now()
 
 # ✅ Liste blanche des ligues fiables
 ligues_autorisees = {
-    "UEFA Champions League"
+    "UEFA Champions League",
+    "Euro (F)"
 }
 
 def envoyer_message(msg):

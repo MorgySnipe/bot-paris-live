@@ -21,9 +21,9 @@ ligues_autorisees = {
     "UEFA Champions League"
 }
 
-async def envoyer_message(msg):
+def envoyer_message(msg):
     try:
-        await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
+        bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
         print("✅ Message envoyé.")
     except Exception as e:
         print(f"❌ Erreur envoi message Telegram: {e}")
@@ -54,6 +54,24 @@ def bonnes_conditions(stats):
         attacks >= 30
     )
 
+async def get_stats(fixture_id):
+    url = f"https://v3.football.api-sports.io/fixtures/statistics?fixture={fixture_id}"
+    headers = {"x-apisports-key": API_KEY}
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, headers=headers) as resp:
+                data = await resp.json()
+                stats = {}
+                for team_stats in data.get("response", []):
+                    for stat in team_stats.get("statistics", []):
+                        name = stat["type"]
+                        value = stat["value"] or 0
+                        stats[name] = stats.get(name, 0) + (int(value) if isinstance(value, int) else 0)
+                return stats
+        except Exception as e:
+            print(f"❌ Erreur stats: {e}")
+            return {}
+
 async def analyser_match(match):
     fixture = match["fixture"]
     teams = match["teams"]
@@ -80,7 +98,7 @@ async def analyser_match(match):
     if 30 <= minute <= 60 and total_goals == 0 and bonnes_conditions(stats):
         alertes_envoyees.add(key)
         matchs_surveilles[match_id] = {"mi_temps": False, "pleine": True}
-        await envoyer_message(
+        envoyer_message(
             f"✨ *PRONOSTIC LIVE : +0.5 BUT (Fin de match)*\n"
             f"📍 {league} | {home} vs {away}\n"
             f"⏱️ {minute}′ | Score : {score['home']} - {score['away']}\n"
@@ -91,31 +109,13 @@ async def analyser_match(match):
     elif 20 <= minute <= 30 and total_goals == 0 and bonnes_conditions(stats):
         alertes_envoyees.add(key)
         matchs_surveilles[match_id] = {"mi_temps": True, "pleine": False}
-        await envoyer_message(
+        envoyer_message(
             f"🔮 *PRONOSTIC LIVE : +0.5 BUT À LA MI-TEMPS*\n"
             f"📍 {league} | {home} vs {away}\n"
             f"⏱️ {minute}′ | Score : {score['home']} - {score['away']}\n"
             f"📊 Attaques dangereuses : {stats.get('Dangerous Attacks', 'N/A')}, "
             f"Tirs cadrés : {stats.get('Shots on Goal', 'N/A')}, Corners : {stats.get('Corner Kicks', 'N/A')}"
         )
-
-async def get_stats(fixture_id):
-    url = f"https://v3.football.api-sports.io/fixtures/statistics?fixture={fixture_id}"
-    headers = {"x-apisports-key": API_KEY}
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url, headers=headers) as resp:
-                data = await resp.json()
-                stats = {}
-                for team_stats in data.get("response", []):
-                    for stat in team_stats.get("statistics", []):
-                        name = stat["type"]
-                        value = stat["value"] or 0
-                        stats[name] = stats.get(name, 0) + (int(value) if isinstance(value, int) else 0)
-                return stats
-        except Exception as e:
-            print(f"❌ Erreur stats: {e}")
-            return {}
 
 async def verifier_resultats(matchs):
     for match in matchs:
@@ -129,18 +129,18 @@ async def verifier_resultats(matchs):
 
         if infos.get("pleine") and status == "FT":
             resultat = "✅ *GAGNÉ*" if total_goals > 0 else "❌ *PERDU*"
-            await envoyer_message(f"📊 Résultat +0.5 but *Fin de match* : {resultat}")
+            envoyer_message(f"📊 Résultat +0.5 but *Fin de match* : {resultat}")
             del matchs_surveilles[fid]
 
         elif infos.get("mi_temps") and status == "HT":
             resultat = "✅ *GAGNÉ*" if total_goals > 0 else "❌ *PERDU*"
-            await envoyer_message(f"📊 Résultat +0.5 but *Mi-temps* : {resultat}")
+            envoyer_message(f"📊 Résultat +0.5 but *Mi-temps* : {resultat}")
             del matchs_surveilles[fid]
 
 async def main():
     global dernier_heartbeat
     print("🟢 Lancement de la boucle principale...")
-    await envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage ligue whitelist...")
+    envoyer_message("🤖 Bot Paris Live *lancé* avec filtrage ligues whitelist...")
 
     while True:
         matchs = await get_matchs_live()
@@ -152,11 +152,12 @@ async def main():
         await verifier_resultats(matchs)
 
         if (datetime.now() - dernier_heartbeat).total_seconds() >= 21600:
-            await envoyer_message("✅ Bot toujours actif !")
+            envoyer_message("✅ Bot toujours actif !")
             dernier_heartbeat = datetime.now()
 
         await asyncio.sleep(CHECK_INTERVAL)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
